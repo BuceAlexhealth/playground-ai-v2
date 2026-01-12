@@ -34,8 +34,6 @@ export function SimpleSignupForm({ role, title, description, extraFields }: Simp
             const result = await signup(formData)
             if (result?.error) {
                 setError(result.error)
-            } else if (result?.success) {
-                setSuccess(result.message || 'Check your email.')
             }
         } catch (e) {
             console.error("Signup error:", e)
