@@ -19,6 +19,12 @@ const signupSchema = z.object({
     pharmacy_name: z.string().optional().nullable(),
 })
 
+const roleRedirects = {
+    doctor: '/doctor',
+    pharmacist: '/pharmacy',
+    patient: '/patient',
+}
+
 export async function login(formData: FormData) {
     const supabase = await createClient()
 
@@ -33,8 +39,17 @@ export async function login(formData: FormData) {
         return { error: error.message }
     }
 
+    // Fetch user to get role from metadata
+    const { data: { user } } = await supabase.auth.getUser();
+    const role = user?.user_metadata?.role as keyof typeof roleRedirects | undefined;
+
     revalidatePath('/', 'layout')
-    redirect('/')
+
+    if (role && roleRedirects[role]) {
+        redirect(roleRedirects[role])
+    } else {
+        redirect('/')
+    }
 }
 
 export async function signup(formData: FormData) {
@@ -85,9 +100,13 @@ export async function signup(formData: FormData) {
     console.log("Signup successful. Session present:", !!data.session)
 
     // Revalidate and redirect immediately. 
-    // If Supabase is configured to NOT require email confirmation, this will log them in.
     revalidatePath('/', 'layout')
-    redirect('/')
+
+    if (role && roleRedirects[role]) {
+        redirect(roleRedirects[role]);
+    } else {
+        redirect('/')
+    }
 }
 
 
